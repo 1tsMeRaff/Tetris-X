@@ -1,0 +1,95 @@
+/**
+ * Component-specific styles: Buttons, Recoil Animations, Range Sliders
+ */
+
+.ts-btn-primary {
+    background-color: var(--accent);
+    color: #FFFFFF;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-lock);
+    cursor: pointer;
+    transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.12s ease, background-color 0.12s ease;
+}
+
+.ts-btn-primary:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+}
+
+.ts-btn-primary:active:not(:disabled) {
+    transform: translateY(1px) scale(0.99);
+}
+
+.ts-btn-primary:disabled {
+    background-color: var(--bg-elevated);
+    border-color: var(--border-hairline);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.ts-btn-secondary {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lock);
+    cursor: pointer;
+    transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.ts-btn-secondary:hover:not(:disabled) {
+    border-color: var(--border-strong);
+    background-color: var(--bg-subtle);
+}
+
+.ts-btn-secondary:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+/* Recoil / Screen Shake Animations */
+@keyframes recoilLight {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    30% { transform: translate3d(0, 3px, 0); }
+    60% { transform: translate3d(0, -1px, 0); }
+}
+
+@keyframes recoilHeavy {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    20% { transform: translate3d(-4px, 4px, 0); }
+    40% { transform: translate3d(4px, -3px, 0); }
+    60% { transform: translate3d(-3px, 2px, 0); }
+    80% { transform: translate3d(2px, -1px, 0); }
+}
+
+.shake-sm {
+    animation: recoilLight 0.14s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shake-lg {
+    animation: recoilHeavy 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shake-sm, .shake-lg {
+        animation: none !important;
+    }
+}
+
+/* Taste Dials Range Slider */
+input[type="range"].ts-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+    outline: none;
+}
+
+input[type="range"].ts-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+    cursor: pointer;
+}

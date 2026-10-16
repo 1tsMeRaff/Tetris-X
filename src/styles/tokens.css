@@ -1,0 +1,42 @@
+/**
+ * Design Tokens & Theme Variables
+ * Taste Skill v2 Specification: Spatial Block System
+ * Restrained editorial-technical language (Linear / Braun)
+ * Signal accent lock: #FF4D00 | Architectural radius lock: 6px
+ */
+
+:root, [data-theme="dark"] {
+    --bg-canvas: #0A0A0B;
+    --bg-surface: #111113;
+    --bg-elevated: #17171A;
+    --bg-subtle: #1D1D21;
+    --border-hairline: #242429;
+    --border-strong: #34343C;
+    --text-primary: #F4F4F0;
+    --text-secondary: #9A9AA4;
+    --text-muted: #63636E;
+    --accent: #FF4D00;
+    --accent-hover: #E04400;
+    --accent-tint: rgba(255, 77, 0, 0.12);
+    --board-bg: #0D0D0F;
+    --board-grid: rgba(255, 255, 255, 0.04);
+    --radius-lock: 6px;
+}
+
+[data-theme="light"] {
+    --bg-canvas: #F5F4F0;
+    --bg-surface: #ECEAE4;
+    --bg-elevated: #E3E0D8;
+    --bg-subtle: #D8D5CC;
+    --border-hairline: #D0CDC3;
+    --border-strong: #B5B1A6;
+    --text-primary: #141413;
+    --text-secondary: #52514C;
+    --text-muted: #828079;
+    --accent: #FF4D00;
+    --accent-hover: #D94100;
+    --accent-tint: rgba(255, 77, 0, 0.10);
+    --board-bg: #FAF9F6;
+    --board-grid: rgba(20, 20, 19, 0.06);
+    --radius-lock: 6px;
+}
