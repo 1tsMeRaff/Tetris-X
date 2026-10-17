@@ -93,3 +93,89 @@ input[type="range"].ts-slider::-webkit-slider-thumb {
     border-radius: 2px;
     cursor: pointer;
 }
+
+/* Mobile Ergonomic Gamepad & Zero-Scroll Architecture */
+@media (max-width: 1023px) {
+    html, body {
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: manipulation;
+    }
+
+    #mainWorkspace {
+        height: calc(100dvh - 128px);
+        max-height: calc(100dvh - 128px);
+        padding-top: 2px;
+        padding-bottom: 2px;
+        justify-content: space-between;
+    }
+
+    .mobile-board-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
+    }
+
+    #gameCanvas {
+        max-height: min(48dvh, 420px);
+        width: auto !important;
+        aspect-ratio: 1 / 2;
+        object-fit: contain;
+        touch-action: none;
+    }
+
+    .ts-ctrl-btn {
+        background-color: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.08s ease, background-color 0.08s ease, border-color 0.08s ease;
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .ts-ctrl-btn:active {
+        background-color: var(--accent-tint);
+        border-color: var(--accent);
+        transform: scale(0.92);
+    }
+
+    .ts-action-rotate {
+        background-color: var(--accent);
+        color: #FFFFFF;
+        border: 2px solid var(--accent);
+        border-radius: 9999px;
+        box-shadow: 0 4px 16px rgba(255, 77, 0, 0.35);
+        cursor: pointer;
+        transition: transform 0.08s ease, box-shadow 0.08s ease;
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .ts-action-rotate:active {
+        transform: scale(0.90);
+        box-shadow: 0 2px 8px rgba(255, 77, 0, 0.2);
+    }
+
+    .ts-ctrl-pill {
+        background-color: var(--bg-surface);
+        color: var(--text-primary);
+        border: 1px solid var(--border-hairline);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: transform 0.08s ease, border-color 0.08s ease;
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .ts-ctrl-pill:active {
+        border-color: var(--accent);
+        transform: scale(0.95);
+    }
+}
+

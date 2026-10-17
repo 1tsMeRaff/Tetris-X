@@ -1,0 +1,138 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e6]:
+        - heading "TetriX" [level=1] [ref=e7]
+        - generic [ref=e8]: arcade-overdrive
+      - button "$ npx tetrix --mode=arcade-overdrive --dials=7,6,7 " [ref=e9]:
+        - generic [ref=e10]: $
+        - generic [ref=e11]: npx tetrix --mode=arcade-overdrive --dials=7,6,7
+        - generic [ref=e12]: 
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]: Rekor
+        - generic [ref=e16]: "0"
+      - button " 7/6/7" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 
+        - generic [ref=e19]: 7/6/7
+      - button "" [ref=e20] [cursor=pointer]
+      - button "" [ref=e22] [cursor=pointer]
+      - button "" [ref=e24] [cursor=pointer]
+      - button "" [ref=e26] [cursor=pointer]
+  - main [ref=e28]:
+    - complementary [ref=e29]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: Simpanan Balok
+        - generic [ref=e33]: C / Shift
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: 
+            - text: Kapasitor Overdrive
+          - generic [ref=e40]: 0%
+        - paragraph [ref=e42]:
+          - text: Saat penuh, lepaskan pulsa termal untuk menghapus 3 baris terbawah dan aktifkan pengganda
+          - strong [ref=e43]: 2x Skor
+          - text: .
+        - button " Aktifkan Overdrive [E]" [disabled] [ref=e44]:
+          - generic [ref=e45]: 
+          - generic [ref=e46]: Aktifkan Overdrive [E]
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]: Skor Akumulasi
+          - text: "0"
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - generic [ref=e52]: Level
+            - text: "1"
+          - generic [ref=e53]:
+            - generic [ref=e54]: Garis
+            - text: "0"
+          - generic [ref=e55]:
+            - generic [ref=e56]: Rangkaian Kombo
+            - text: 0x
+          - generic [ref=e57]:
+            - generic [ref=e58]: Waktu Aktif
+            - text: 00:00
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: "01"
+          - generic [ref=e63]: "02"
+          - generic [ref=e64]: "03"
+          - generic [ref=e65]: "04"
+          - generic [ref=e66]: "05"
+          - generic [ref=e67]: "06"
+          - generic [ref=e68]: "07"
+          - generic [ref=e69]: "08"
+          - generic [ref=e70]: "09"
+          - generic [ref=e71]: "10"
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - generic [ref=e76]: TETRIX // SPATIAL MATRIX
+            - generic [ref=e77]: SIAP
+          - generic [ref=e78]:
+            - heading "Presisi Tata Ruang Tanpa Distraksi Visual." [level=2] [ref=e79]
+            - paragraph [ref=e80]: Pilih protokol permainan di bawah untuk memulai simulasi balok.
+            - generic [ref=e81]:
+              - button "Arcade Overdrive Inti bom 3x3 dan pulsa laser termal " [ref=e82] [cursor=pointer]:
+                - generic [ref=e83]:
+                  - generic [ref=e84]: Arcade Overdrive
+                  - generic [ref=e85]: Inti bom 3x3 dan pulsa laser termal
+                - generic [ref=e86]: 
+              - button "Sprint 40 Garis Uji kecepatan waktu nyata untuk 40 baris 40L" [ref=e87] [cursor=pointer]:
+                - generic [ref=e88]:
+                  - generic [ref=e89]: Sprint 40 Garis
+                  - generic [ref=e90]: Uji kecepatan waktu nyata untuk 40 baris
+                - generic [ref=e91]: 40L
+              - button "Zen Tanpa Batas Kecepatan konstan dengan reset otomatis INF" [ref=e92] [cursor=pointer]:
+                - generic [ref=e93]:
+                  - generic [ref=e94]: Zen Tanpa Batas
+                  - generic [ref=e95]: Kecepatan konstan dengan reset otomatis
+                - generic [ref=e96]: INF
+          - generic [ref=e97]:
+            - generic [ref=e98]: "DESIGN: TASTESKILL.DEV"
+            - generic [ref=e99]: "LOCK: #FF4D00"
+      - text: 
+    - complementary [ref=e100]:
+      - generic [ref=e102]:
+        - generic [ref=e103]: Antrean Berikutnya
+        - generic [ref=e104]: 3 BALOK
+      - generic [ref=e107]:
+        - generic [ref=e108]: Spesifikasi Mekanik
+        - generic [ref=e109]:
+          - generic [ref=e110]: Inti Bom Termal
+          - paragraph [ref=e113]: Balok dengan penanda titik oranye meledakkan matriks 3x3 di sekitarnya saat baris tersebut penuh.
+        - generic [ref=e114]:
+          - generic [ref=e115]: Peta Kendali
+          - generic [ref=e116]:
+            - generic [ref=e117]:
+              - generic [ref=e118]: Geser
+              - generic [ref=e119]: A / D
+            - generic [ref=e120]:
+              - generic [ref=e121]: Putar
+              - generic [ref=e122]: W / X
+            - generic [ref=e123]:
+              - generic [ref=e124]: Jatuh
+              - generic [ref=e125]: Spasi
+            - generic [ref=e126]:
+              - generic [ref=e127]: Simpan
+              - generic [ref=e128]: C
+  - contentinfo [ref=e129]:
+    - generic [ref=e130]:
+      - button " Kiri" [ref=e131] [cursor=pointer]:
+        - generic [ref=e132]: 
+        - generic [ref=e133]: Kiri
+      - button " Turun" [ref=e134] [cursor=pointer]:
+        - generic [ref=e135]: 
+        - generic [ref=e136]: Turun
+      - button " Kanan" [ref=e137] [cursor=pointer]:
+        - generic [ref=e138]: 
+        - generic [ref=e139]: Kanan
+      - button " Putar" [ref=e140] [cursor=pointer]:
+        - generic [ref=e141]: 
+        - generic [ref=e142]: Putar
+      - button " Jatuh" [ref=e143] [cursor=pointer]:
+        - generic [ref=e144]: 
+        - generic [ref=e145]: Jatuh
+    - text: 
