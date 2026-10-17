@@ -102,6 +102,11 @@ export class AudioSystem {
             osc.connect(gain);
             gain.connect(this.ctx.destination);
 
+            osc.onended = () => {
+                osc.disconnect();
+                gain.disconnect();
+            };
+
             osc.start();
             osc.stop(this.ctx.currentTime + duration);
         } catch (e) {

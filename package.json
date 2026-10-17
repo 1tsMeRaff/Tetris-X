@@ -11,6 +11,10 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.30",
+    "tailwindcss": "^4.3.3",
     "vite": "^6.0.0",
     "vitest": "^2.1.0"
   }

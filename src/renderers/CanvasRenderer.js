@@ -28,23 +28,21 @@ export class CanvasRenderer {
         const { ctx, canvas } = this;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. Draw Architectural Grid Lines
-        const gridColor = theme === 'light' ? 'rgba(20, 20, 19, 0.06)' : 'rgba(255, 255, 255, 0.04)';
-        ctx.strokeStyle = gridColor;
+        // 1. Draw Architectural Grid Lines (Single Batched Stroke)
+        ctx.strokeStyle = theme === 'light' ? 'rgba(20, 20, 19, 0.06)' : 'rgba(255, 255, 255, 0.04)';
         ctx.lineWidth = 1;
-
+        ctx.beginPath();
         for (let x = 1; x < this.cols; x++) {
-            ctx.beginPath();
-            ctx.moveTo(x * this.blockSize, 0);
-            ctx.lineTo(x * this.blockSize, canvas.height);
-            ctx.stroke();
+            const posX = x * this.blockSize;
+            ctx.moveTo(posX, 0);
+            ctx.lineTo(posX, canvas.height);
         }
         for (let y = 1; y < this.rows; y++) {
-            ctx.beginPath();
-            ctx.moveTo(0, y * this.blockSize);
-            ctx.lineTo(canvas.width, y * this.blockSize);
-            ctx.stroke();
+            const posY = y * this.blockSize;
+            ctx.moveTo(0, posY);
+            ctx.lineTo(canvas.width, posY);
         }
+        ctx.stroke();
 
         // 2. Draw Locked Grid Blocks
         for (let y = 0; y < this.rows; y++) {
@@ -69,21 +67,21 @@ export class CanvasRenderer {
         if (currentPiece && isRunning) {
             const ghostY = currentPiece.getGhostY(board);
 
-            // Dashed blueprint ghost silhouette
+            // Dashed blueprint ghost silhouette (Single configuration)
+            ctx.strokeStyle = theme === 'light' ? 'rgba(20, 20, 19, 0.35)' : 'rgba(244, 244, 240, 0.3)';
+            ctx.lineWidth = 1.25;
+            ctx.setLineDash([3, 3]);
+
             currentPiece.matrix.forEach((row, r) => {
                 row.forEach((val, c) => {
                     if (val !== 0) {
                         const gx = (currentPiece.x + c) * this.blockSize;
                         const gy = (ghostY + r) * this.blockSize;
-                        ctx.save();
-                        ctx.strokeStyle = theme === 'light' ? 'rgba(20, 20, 19, 0.35)' : 'rgba(244, 244, 240, 0.3)';
-                        ctx.lineWidth = 1.25;
-                        ctx.setLineDash([3, 3]);
                         ctx.strokeRect(gx + 2.5, gy + 2.5, this.blockSize - 5, this.blockSize - 5);
-                        ctx.restore();
                     }
                 });
             });
+            ctx.setLineDash([]); // Reset line dash
 
             // Active falling piece
             currentPiece.matrix.forEach((row, r) => {
@@ -106,11 +104,10 @@ export class CanvasRenderer {
     }
 
     /**
-     * Draw individual architectural block cell
+     * Draw individual architectural block cell (zero save/restore overhead)
      */
     drawBlock(context, x, y, size, color, border, alpha = 1, isBomb = false) {
-        context.save();
-        context.globalAlpha = alpha;
+        if (alpha !== 1) context.globalAlpha = alpha;
 
         // Matte block fill with 3px architectural corner radius
         context.fillStyle = color;
@@ -135,6 +132,6 @@ export class CanvasRenderer {
             context.fillRect(x + size * 0.36, y + size * 0.36, size * 0.28, size * 0.28);
         }
 
-        context.restore();
+        if (alpha !== 1) context.globalAlpha = 1;
     }
 }

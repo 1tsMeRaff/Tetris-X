@@ -102,26 +102,42 @@ function initApp() {
         previewRenderer.renderNext(engine.pieceBag.queue);
     });
 
-    // 8. Main 60fps Game & Animation Loop
+    // 8. Main 60/120fps Game & Animation Loop
     let lastTime = performance.now();
+    let wasIdle = false;
 
     function gameLoop(time = performance.now()) {
-        const deltaTime = time - lastTime;
+        const deltaTime = Math.min(time - lastTime, 100); // Clamp against tab switch lag spikes
         lastTime = time;
 
-        // Core physics & gravity update
-        engine.update(deltaTime, time);
+        const isRunning = engine.state.running && !engine.state.paused;
+        const hasActiveFx = fxRenderer.particles.length > 0 || fxRenderer.floatingTexts.length > 0;
 
-        // Visual frame render
-        canvasRenderer.render(
-            engine.board,
-            engine.state.currentPiece,
-            engine.state.running,
-            theme.getTheme()
-        );
+        if (isRunning || hasActiveFx) {
+            wasIdle = false;
+            // Core physics & gravity update
+            engine.update(deltaTime, time);
 
-        // FX & floating telemetry tags
-        fxRenderer.render(canvasRenderer.ctx);
+            // Visual frame render
+            canvasRenderer.render(
+                engine.board,
+                engine.state.currentPiece,
+                engine.state.running,
+                theme.getTheme()
+            );
+
+            // FX & floating telemetry tags
+            fxRenderer.render(canvasRenderer.ctx);
+        } else if (!wasIdle) {
+            // Render resting frame once when transitioning into idle or paused state
+            wasIdle = true;
+            canvasRenderer.render(
+                engine.board,
+                engine.state.currentPiece,
+                engine.state.running,
+                theme.getTheme()
+            );
+        }
 
         requestAnimationFrame(gameLoop);
     }

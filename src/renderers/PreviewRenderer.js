@@ -84,27 +84,26 @@ export class PreviewRenderer {
         const offsetX = centerX - (cols * cellSize) / 2;
         const offsetY = centerY - (rows * cellSize) / 2;
 
+        context.lineWidth = 1;
+
         m.forEach((row, r) => {
             row.forEach((val, c) => {
                 if (val !== 0) {
                     const x = offsetX + c * cellSize;
                     const y = offsetY + r * cellSize;
 
-                    context.save();
                     context.fillStyle = piece.color;
                     context.beginPath();
                     context.roundRect(x + 1, y + 1, cellSize - 2, cellSize - 2, 2);
                     context.fill();
 
                     context.strokeStyle = piece.border;
-                    context.lineWidth = 1;
                     context.stroke();
 
                     if (val === 2) {
                         context.fillStyle = '#FF4D00';
                         context.fillRect(x + cellSize * 0.35, y + cellSize * 0.35, cellSize * 0.3, cellSize * 0.3);
                     }
-                    context.restore();
                 }
             });
         });

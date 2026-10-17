@@ -14,6 +14,7 @@ export class FXRenderer {
         this.bus = bus;
         this.boardContainer = boardContainer || (typeof document !== 'undefined' ? document.getElementById('boardContainer') : null);
         this.particles = [];
+        this.particlePool = [];
         this.floatingTexts = [];
         this.motionIntensity = 6;
 
@@ -95,16 +96,16 @@ export class FXRenderer {
         for (let i = 0; i < scaledCount; i++) {
             const angle = Math.random() * Math.PI * 2;
             const vel = Math.random() * speed + 0.8;
-            this.particles.push({
-                x,
-                y,
-                vx: Math.cos(angle) * vel,
-                vy: Math.sin(angle) * vel - 0.8,
-                size: Math.random() * 3 + 1.5,
-                color,
-                alpha: 1,
-                decay: Math.random() * 0.03 + 0.02
-            });
+            const pt = this.particlePool.pop() || {};
+            pt.x = x;
+            pt.y = y;
+            pt.vx = Math.cos(angle) * vel;
+            pt.vy = Math.sin(angle) * vel - 0.8;
+            pt.size = Math.random() * 3 + 1.5;
+            pt.color = color;
+            pt.alpha = 1;
+            pt.decay = Math.random() * 0.03 + 0.02;
+            this.particles.push(pt);
         }
     }
 
@@ -138,12 +139,15 @@ export class FXRenderer {
         if (this.motionIntensity <= 3 || !this.boardContainer) return;
         const cls = intensity === 'lg' && this.motionIntensity >= 6 ? 'shake-lg' : 'shake-sm';
         this.boardContainer.classList.remove('shake-sm', 'shake-lg');
-        void this.boardContainer.offsetWidth; // Force reflow
-        this.boardContainer.classList.add(cls);
+        requestAnimationFrame(() => {
+            if (this.boardContainer) {
+                this.boardContainer.classList.add(cls);
+            }
+        });
     }
 
     render(ctx) {
-        // Render square architectural particles
+        // 1. Render square architectural particles (Zero save/restore, swap-and-pop O(1))
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const pt = this.particles[i];
             pt.x += pt.vx;
@@ -152,35 +156,45 @@ export class FXRenderer {
             pt.alpha -= pt.decay;
 
             if (pt.alpha <= 0) {
-                this.particles.splice(i, 1);
+                if (this.particlePool.length < 300) {
+                    this.particlePool.push(pt);
+                }
+                const last = this.particles.pop();
+                if (i < this.particles.length) {
+                    this.particles[i] = last;
+                }
                 continue;
             }
 
-            ctx.save();
             ctx.globalAlpha = pt.alpha;
             ctx.fillStyle = pt.color;
             ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
-            ctx.restore();
         }
 
-        // Render JetBrains Mono floating telemetry tags
-        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
-            const ft = this.floatingTexts[i];
-            ft.y += ft.vy;
-            ft.alpha -= 0.02;
-
-            if (ft.alpha <= 0) {
-                this.floatingTexts.splice(i, 1);
-                continue;
-            }
-
-            ctx.save();
-            ctx.globalAlpha = ft.alpha;
-            ctx.font = `700 ${Math.round(13 * ft.scale)}px 'JetBrains Mono', monospace`;
-            ctx.fillStyle = ft.color;
+        // 2. Render JetBrains Mono floating telemetry tags
+        if (this.floatingTexts.length > 0) {
             ctx.textAlign = 'center';
-            ctx.fillText(ft.text, ft.x, ft.y);
-            ctx.restore();
+
+            for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+                const ft = this.floatingTexts[i];
+                ft.y += ft.vy;
+                ft.alpha -= 0.02;
+
+                if (ft.alpha <= 0) {
+                    const last = this.floatingTexts.pop();
+                    if (i < this.floatingTexts.length) {
+                        this.floatingTexts[i] = last;
+                    }
+                    continue;
+                }
+
+                ctx.globalAlpha = ft.alpha;
+                ctx.font = `700 ${Math.round(13 * ft.scale)}px 'JetBrains Mono', monospace`;
+                ctx.fillStyle = ft.color;
+                ctx.fillText(ft.text, ft.x, ft.y);
+            }
         }
+
+        ctx.globalAlpha = 1; // Clean global state reset
     }
 }
