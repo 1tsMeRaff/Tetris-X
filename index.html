@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TetriX / Spatial Block System</title>
+    <!-- Google Fonts Preconnect & DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Modular CSS Architecture -->
+  <script type="module" crossorigin src="./assets/index-DoZ7tjaq.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BjZ5Yml0.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar: Single line, max 80px height -->
+    <header class="w-full border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)] h-16 px-3 sm:px-6 flex items-center justify-between z-20">
+        <div class="flex items-center gap-3">
+            <!-- Geometric mark pressed into stone -->
+            <div class="w-8 h-8 ts-elevated flex items-center justify-center border border-[var(--border-strong)]">
+                <span class="w-3.5 h-3.5 bg-[var(--accent)] inline-block" style="border-radius: 2px;"></span>
+            </div>
+            <div class="flex items-baseline gap-2.5">
+                <h1 class="text-base sm:text-lg font-semibold tracking-tight">TetriX</h1>
+                <span id="modeBadge" class="font-mono-tabular text-xs text-[var(--text-secondary)] hidden sm:inline-block">
+                    arcade-overdrive
+                </span>
+            </div>
+
+            <!-- CLI Command Pill -->
+            <button id="btnCopyCli" class="hidden md:flex items-center gap-2 ml-3 px-2.5 py-1 ts-surface text-xs font-mono-tabular text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition" title="Salin perintah preset">
+                <span class="text-[var(--accent)]">$</span>
+                <span id="cliText">npx tetrix --mode=arcade --dials=7,6,7</span>
+                <i id="copyIcon" class="ph ph-copy text-xs ml-1"></i>
+            </button>
+        </div>
+
+        <!-- Right Nav Actions -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+            <!-- Best Score Telemetry -->
+            <div class="ts-surface h-9 px-3 flex items-center gap-2">
+                <span class="text-[11px] text-[var(--text-secondary)] font-medium">Rekor</span>
+                <span id="highScoreDisplay" class="font-mono-tabular text-xs sm:text-sm font-semibold text-[var(--text-primary)]">0</span>
+            </div>
+
+            <!-- Taste Dials Toggle Button -->
+            <button id="btnDials" class="ts-btn-secondary h-9 px-2.5 flex items-center gap-1.5 text-xs font-medium" title="Kalibrasi Dials (Variance, Motion, Density)">
+                <i class="ph ph-sliders-horizontal text-sm text-[var(--accent)]"></i>
+                <span class="hidden sm:inline font-mono-tabular" id="dialsSummaryLabel">7/6/7</span>
+            </button>
+
+            <!-- Theme Toggle (Dark Off-Black / Light Editorial Paper) -->
+            <button id="btnTheme" class="ts-btn-secondary w-9 h-9 flex items-center justify-center" title="Ganti Tema (Dark / Paper)">
+                <i class="ph ph-sun-dim text-base"></i>
+            </button>
+
+            <!-- Audio Synth Toggle -->
+            <button id="btnMusic" class="ts-btn-secondary w-9 h-9 flex items-center justify-center" title="Toggle Musik Synth">
+                <i class="ph ph-waveform text-base text-[var(--text-secondary)]"></i>
+            </button>
+
+            <!-- SFX Toggle -->
+            <button id="btnSfx" class="ts-btn-secondary w-9 h-9 flex items-center justify-center" title="Toggle Efek Suara">
+                <i class="ph ph-speaker-high text-base"></i>
+            </button>
+
+            <!-- Pause Button -->
+            <button id="btnPause" class="ts-btn-secondary w-9 h-9 flex items-center justify-center" title="Jeda Permainan [P]">
+                <i class="ph ph-pause text-base"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Collapsible Taste Skill 3-Dials Calibration Bar -->
+    <section id="dialsDrawer" class="hidden w-full border-b border-[var(--border-hairline)] bg-[var(--bg-surface)] px-4 py-3 z-20">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex flex-col">
+                <span class="text-xs font-semibold tracking-tight">Taste Skill Dials</span>
+                <span class="text-[11px] text-[var(--text-secondary)]">Sesuaikan parameter visual dan intensitas gerak secara langsung.</span>
+            </div>
+            <div class="w-full sm:w-auto grid grid-cols-3 gap-4 sm:gap-6">
+                <div class="flex flex-col gap-1 min-w-[110px]">
+                    <div class="flex justify-between text-[11px] font-mono-tabular">
+                        <span class="text-[var(--text-secondary)]">VARIANCE</span>
+                        <span id="valVariance" class="font-semibold text-[var(--accent)]">7</span>
+                    </div>
+                    <input id="dialVariance" type="range" min="1" max="10" value="7" class="ts-slider">
+                </div>
+                <div class="flex flex-col gap-1 min-w-[110px]">
+                    <div class="flex justify-between text-[11px] font-mono-tabular">
+                        <span class="text-[var(--text-secondary)]">MOTION</span>
+                        <span id="valMotion" class="font-semibold text-[var(--accent)]">6</span>
+                    </div>
+                    <input id="dialMotion" type="range" min="1" max="10" value="6" class="ts-slider">
+                </div>
+                <div class="flex flex-col gap-1 min-w-[110px]">
+                    <div class="flex justify-between text-[11px] font-mono-tabular">
+                        <span class="text-[var(--text-secondary)]">DENSITY</span>
+                        <span id="valDensity" class="font-semibold text-[var(--accent)]">7</span>
+                    </div>
+                    <input id="dialDensity" type="range" min="1" max="10" value="7" class="ts-slider">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Workspace Container -->
+    <main id="mainWorkspace" class="w-full max-w-5xl mx-auto flex-1 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-3 sm:gap-5 px-2 sm:px-6 py-3 sm:py-5 my-auto transition-all">
+
+        <!-- Mobile Top Bento Bar (Visible < lg) -->
+        <div class="w-full max-w-[340px] grid grid-cols-4 gap-2 lg:hidden">
+            <div class="ts-surface p-2 flex flex-col items-center justify-center">
+                <span class="text-[10px] text-[var(--text-secondary)] font-mono-tabular">HOLD</span>
+                <canvas id="holdCanvasMobile" width="56" height="40" class="mt-0.5"></canvas>
+            </div>
+            <div class="ts-surface p-2 col-span-2 flex flex-col justify-center items-center">
+                <span class="text-[10px] text-[var(--text-secondary)]">Skor</span>
+                <span id="scoreMobile" class="font-mono-tabular text-base font-bold leading-tight">0</span>
+                <div class="flex items-center gap-3 mt-0.5 font-mono-tabular text-[10px] text-[var(--text-secondary)]">
+                    <span>LVL <strong id="levelMobile" class="text-[var(--text-primary)]">1</strong></span>
+                    <span>LNS <strong id="linesMobile" class="text-[var(--text-primary)]">0</strong></span>
+                </div>
+            </div>
+            <div class="ts-surface p-2 flex flex-col items-center justify-center">
+                <span class="text-[10px] text-[var(--text-secondary)] font-mono-tabular">NEXT</span>
+                <canvas id="nextCanvasMobile" width="56" height="40" class="mt-0.5"></canvas>
+            </div>
+        </div>
+
+        <!-- Left Bento Column (Desktop) -->
+        <aside class="hidden lg:flex flex-col gap-3 w-60 shrink-0">
+            <!-- Hold Queue Module -->
+            <div class="ts-surface p-4 flex flex-col">
+                <div class="flex items-center justify-between mb-2.5">
+                    <span class="text-xs font-medium text-[var(--text-secondary)]">Simpanan Balok</span>
+                    <span class="ts-keycap">C / Shift</span>
+                </div>
+                <div class="w-full h-24 ts-elevated flex items-center justify-center">
+                    <canvas id="holdCanvasDesktop" width="110" height="76"></canvas>
+                </div>
+            </div>
+
+            <!-- Overdrive Capacitor Module -->
+            <div class="ts-surface p-4 flex flex-col gap-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium flex items-center gap-1.5">
+                        <i class="ph-fill ph-lightning text-[var(--accent)]"></i>
+                        Kapasitor Overdrive
+                    </span>
+                    <span id="overdrivePctDesktop" class="font-mono-tabular text-xs font-semibold text-[var(--accent)]">0%</span>
+                </div>
+                <div class="w-full h-2 bg-[var(--bg-canvas)] border border-[var(--border-hairline)] overflow-hidden" style="border-radius: 3px;">
+                    <div id="overdriveBarDesktop" class="h-full w-0 bg-[var(--accent)] transition-all duration-200"></div>
+                </div>
+                <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                    Saat penuh, lepaskan pulsa termal untuk menghapus 3 baris terbawah dan aktifkan pengganda <strong class="text-[var(--text-primary)] font-medium">2x Skor</strong>.
+                </p>
+                <button id="btnOverdriveDesktop" disabled class="ts-btn-primary mt-0.5 w-full min-h-[40px] px-3 py-2 text-xs font-mono-tabular font-semibold tracking-tight flex items-center justify-center gap-1.5">
+                    <i class="ph-bold ph-lightning"></i>
+                    <span>Aktifkan Overdrive [E]</span>
+                </button>
+            </div>
+
+            <!-- Telemetry Bento Grid -->
+            <div class="ts-surface p-4 flex flex-col gap-3">
+                <div>
+                    <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Skor Akumulasi</span>
+                    <span id="scoreDesktop" class="font-mono-tabular text-2xl font-bold tracking-tight">0</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="ts-elevated p-2.5">
+                        <span class="text-[11px] text-[var(--text-secondary)] block">Level</span>
+                        <span id="levelDesktop" class="font-mono-tabular text-lg font-semibold">1</span>
+                    </div>
+                    <div class="ts-elevated p-2.5">
+                        <span class="text-[11px] text-[var(--text-secondary)] block">Garis</span>
+                        <span id="linesDesktop" class="font-mono-tabular text-lg font-semibold">0</span>
+                    </div>
+                    <div class="ts-elevated p-2.5">
+                        <span class="text-[11px] text-[var(--text-secondary)] block">Rangkaian Kombo</span>
+                        <span id="comboDesktop" class="font-mono-tabular text-sm font-semibold text-[var(--accent)]">0x</span>
+                    </div>
+                    <div class="ts-elevated p-2.5">
+                        <span class="text-[11px] text-[var(--text-secondary)] block">Waktu Aktif</span>
+                        <span id="timerDesktop" class="font-mono-tabular text-sm font-semibold">00:00</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Playfield Column -->
+        <section class="relative flex flex-col items-center justify-center">
+            <div id="boardContainer" class="relative p-2 sm:p-3 ts-surface">
+                <!-- Top Coordinate Ruler -->
+                <div id="coordRulerTop" class="w-[300px] flex justify-between px-1 pb-1.5 font-mono-tabular text-[9px] text-[var(--text-muted)]">
+                    <span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>10</span>
+                </div>
+
+                <!-- Active 2X Multiplier Pill -->
+                <div id="frenzyBanner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 z-20 px-2.5 py-0.5 bg-[var(--accent)] text-white font-mono-tabular text-[11px] font-semibold tracking-tight" style="border-radius: 4px;">
+                    2X OVERDRIVE AKTIF
+                </div>
+
+                <!-- Main Tetris Playfield Canvas -->
+                <div class="relative border border-[var(--border-strong)]" style="border-radius: 4px; overflow: hidden;">
+                    <canvas id="gameCanvas" width="300" height="600" class="block bg-[var(--board-bg)]"></canvas>
+                </div>
+
+                <!-- Start / Pause / Game Over Modal Overlay -->
+                <div id="overlayMenu" class="absolute inset-0 bg-[var(--bg-canvas)]/95 flex flex-col justify-between p-6 z-30" style="border-radius: var(--radius-lock);">
+                    <!-- Top Metadata -->
+                    <div class="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3">
+                        <span class="font-mono-tabular text-[11px] text-[var(--text-secondary)]">TETRIX // SPATIAL MATRIX</span>
+                        <span id="overlayStatusTag" class="font-mono-tabular text-[11px] text-[var(--accent)]">SIAP</span>
+                    </div>
+
+                    <!-- Center Copy & Mode Selection -->
+                    <div class="my-auto py-4">
+                        <h2 id="overlayTitle" class="text-xl sm:text-2xl font-bold tracking-tight leading-snug mb-2">
+                            Presisi Tata Ruang Tanpa Distraksi Visual.
+                        </h2>
+                        <p id="overlaySubtitle" class="text-xs text-[var(--text-secondary)] leading-relaxed mb-5">
+                            Pilih protokol permainan di bawah untuk memulai simulasi balok.
+                        </p>
+
+                        <!-- Final Score Telemetry Box -->
+                        <div id="finalScoreBox" class="hidden ts-elevated p-3.5 mb-4">
+                            <div class="flex items-baseline justify-between">
+                                <span class="text-xs text-[var(--text-secondary)]">Skor Akhir</span>
+                                <span id="newRecordBadge" class="hidden font-mono-tabular text-[10px] px-1.5 py-0.5 bg-[var(--accent-tint)] text-[var(--accent)] font-semibold">
+                                    REKOR BARU
+                                </span>
+                            </div>
+                            <span id="finalScoreValue" class="font-mono-tabular text-2xl font-bold block mt-0.5">0</span>
+                        </div>
+
+                        <!-- Mode Selection Buttons -->
+                        <div class="flex flex-col gap-2">
+                            <button data-mode="arcade" class="mode-btn ts-btn-primary w-full min-h-[44px] px-4 py-2.5 text-left flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs font-semibold block">Arcade Overdrive</span>
+                                    <span class="text-[11px] opacity-85 block">Inti bom 3x3 dan pulsa laser termal</span>
+                                </div>
+                                <i class="ph-bold ph-arrow-right text-sm"></i>
+                            </button>
+
+                            <button data-mode="sprint" class="mode-btn ts-btn-secondary w-full min-h-[44px] px-4 py-2.5 text-left flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs font-semibold block">Sprint 40 Garis</span>
+                                    <span class="text-[11px] text-[var(--text-secondary)] block">Uji kecepatan waktu nyata untuk 40 baris</span>
+                                </div>
+                                <span class="font-mono-tabular text-[11px] text-[var(--text-secondary)]">40L</span>
+                            </button>
+
+                            <button data-mode="zen" class="mode-btn ts-btn-secondary w-full min-h-[44px] px-4 py-2.5 text-left flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs font-semibold block">Zen Tanpa Batas</span>
+                                    <span class="text-[11px] text-[var(--text-secondary)] block">Kecepatan konstan dengan reset otomatis</span>
+                                </div>
+                                <span class="font-mono-tabular text-[11px] text-[var(--text-secondary)]">INF</span>
+                            </button>
+                        </div>
+
+                        <button id="btnResumeOverlay" class="hidden ts-btn-secondary mt-2.5 w-full min-h-[44px] py-2 text-xs font-semibold">
+                            Lanjutkan Sesi [P]
+                        </button>
+                    </div>
+
+                    <!-- Bottom Footnote -->
+                    <div class="border-t border-[var(--border-hairline)] pt-3 flex items-center justify-between text-[11px] font-mono-tabular text-[var(--text-muted)]">
+                        <span>DESIGN: TASTESKILL.DEV</span>
+                        <span>LOCK: #FF4D00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Overdrive Strip -->
+            <div class="w-full max-w-[340px] mt-2 flex items-center gap-2 lg:hidden">
+                <div class="flex-1 ts-surface px-3 py-2 flex items-center gap-2.5">
+                    <i class="ph-fill ph-lightning text-[var(--accent)] text-sm"></i>
+                    <div class="flex-1 h-2 bg-[var(--bg-canvas)] border border-[var(--border-hairline)] overflow-hidden" style="border-radius: 2px;">
+                        <div id="overdriveBarMobile" class="h-full w-0 bg-[var(--accent)] transition-all duration-200"></div>
+                    </div>
+                    <span id="overdrivePctMobile" class="font-mono-tabular text-[11px] font-semibold text-[var(--accent)]">0%</span>
+                </div>
+                <button id="btnOverdriveMobile" disabled class="ts-btn-primary min-h-[40px] px-3.5 py-2 font-mono-tabular text-xs font-semibold shrink-0">
+                    Overdrive
+                </button>
+            </div>
+        </section>
+
+        <!-- Right Bento Column (Desktop) -->
+        <aside class="hidden lg:flex flex-col gap-3 w-60 shrink-0">
+            <!-- Next 3 Queue Module -->
+            <div class="ts-surface p-4 flex flex-col">
+                <div class="flex items-center justify-between mb-2.5">
+                    <span class="text-xs font-medium text-[var(--text-secondary)]">Antrean Berikutnya</span>
+                    <span class="font-mono-tabular text-[11px] text-[var(--text-muted)]">3 BALOK</span>
+                </div>
+                <div class="w-full ts-elevated flex items-center justify-center py-2">
+                    <canvas id="nextCanvasDesktop" width="110" height="204"></canvas>
+                </div>
+            </div>
+
+            <!-- Mechanics & Controls Specification Cards -->
+            <div class="ts-surface p-4 flex flex-col gap-2.5">
+                <span class="text-xs font-medium text-[var(--text-secondary)]">Spesifikasi Mekanik</span>
+
+                <div class="ts-elevated p-3 flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold">Inti Bom Termal</span>
+                        <span class="w-2 h-2 bg-[var(--accent)] inline-block"></span>
+                    </div>
+                    <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                        Balok dengan penanda titik oranye meledakkan matriks 3x3 di sekitarnya saat baris tersebut penuh.
+                    </p>
+                </div>
+
+                <div class="ts-elevated p-3 flex flex-col gap-2">
+                    <span class="text-xs font-semibold">Peta Kendali</span>
+                    <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+                        <div class="flex items-center justify-between text-[var(--text-secondary)]">
+                            <span>Geser</span>
+                            <span class="ts-keycap">A / D</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[var(--text-secondary)]">
+                            <span>Putar</span>
+                            <span class="ts-keycap">W / X</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[var(--text-secondary)]">
+                            <span>Jatuh</span>
+                            <span class="ts-keycap">Spasi</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[var(--text-secondary)]">
+                            <span>Simpan</span>
+                            <span class="ts-keycap">C</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Bottom Control Deck: Minimum 44px touch targets -->
+    <footer class="w-full max-w-md mx-auto px-2 pb-3 pt-1 select-none z-10">
+        <div class="grid grid-cols-5 gap-1.5">
+            <button id="ctrlLeft" class="ts-btn-secondary min-h-[48px] py-2.5 flex flex-col items-center justify-center">
+                <i class="ph-bold ph-arrow-left text-base"></i>
+                <span class="text-[10px] font-mono-tabular text-[var(--text-secondary)] mt-0.5">Kiri</span>
+            </button>
+            <button id="ctrlDown" class="ts-btn-secondary min-h-[48px] py-2.5 flex flex-col items-center justify-center">
+                <i class="ph-bold ph-arrow-down text-base"></i>
+                <span class="text-[10px] font-mono-tabular text-[var(--text-secondary)] mt-0.5">Turun</span>
+            </button>
+            <button id="ctrlRight" class="ts-btn-secondary min-h-[48px] py-2.5 flex flex-col items-center justify-center">
+                <i class="ph-bold ph-arrow-right text-base"></i>
+                <span class="text-[10px] font-mono-tabular text-[var(--text-secondary)] mt-0.5">Kanan</span>
+            </button>
+            <button id="ctrlRotate" class="ts-btn-secondary min-h-[48px] py-2.5 flex flex-col items-center justify-center">
+                <i class="ph-bold ph-arrow-clockwise text-base"></i>
+                <span class="text-[10px] font-mono-tabular text-[var(--text-secondary)] mt-0.5">Putar</span>
+            </button>
+            <button id="ctrlDrop" class="ts-btn-primary min-h-[48px] py-2.5 flex flex-col items-center justify-center">
+                <i class="ph-bold ph-caret-double-down text-base"></i>
+                <span class="text-[10px] font-mono-tabular font-semibold mt-0.5">Jatuh</span>
+            </button>
+        </div>
+        <div class="flex justify-center mt-1.5 lg:hidden">
+            <button id="ctrlHold" class="ts-btn-secondary w-full min-h-[44px] py-2 text-xs font-mono-tabular flex items-center justify-center gap-1.5">
+                <i class="ph-bold ph-arrows-left-right"></i>
+                <span>Tukar Simpanan Balok (Hold)</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Main Module Script -->
+</body>
+</html>
