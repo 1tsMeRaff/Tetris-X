@@ -14,8 +14,8 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <!-- Modular CSS Architecture -->
-  <script type="module" crossorigin src="./assets/index-mbK4ppKj.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index--WlJChTw.css">
+  <script type="module" crossorigin src="./assets/index-D66gfpH-.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-L3bmQ2iH.css">
 </head>
 <body class="min-h-screen flex flex-col justify-between">
 
@@ -61,7 +61,7 @@
             </button>
 
             <!-- Audio Synth Toggle -->
-            <button id="btnMusic" class="ts-btn-secondary w-9 h-9 flex items-center justify-center" title="Toggle Musik Synth">
+            <button id="btnMusic" class="ts-btn-secondary w-9 h-9 flex items-center justify-center" title="Toggle Musik Lo-Fi [M]">
                 <i class="ph ph-waveform text-base text-[var(--text-secondary)]"></i>
             </button>
 
@@ -349,54 +349,62 @@
 
     <!-- Bottom Control Deck: Minimum 44px touch targets -->
     <!-- Bottom Control Deck: Ergonomic Split-Controller for Mobile -->
-    <footer class="w-full max-w-lg mx-auto px-3 pb-2 pt-1 select-none z-10 shrink-0">
+    <footer class="w-full max-w-lg mx-auto px-2 sm:px-4 pb-2 pt-1 select-none z-10 shrink-0">
         <!-- Mobile Ergonomic Split Layout (< lg) -->
-        <div class="flex items-center justify-between gap-2 sm:gap-4 lg:hidden">
-            <!-- Left Thumb: Movement D-Pad Cluster -->
-            <div class="flex items-center gap-1.5">
-                <button id="ctrlLeft" class="ts-ctrl-btn w-12 h-12 flex flex-col items-center justify-center" aria-label="Geser Kiri">
-                    <i class="ph-bold ph-arrow-left text-lg"></i>
-                    <span class="text-[9px] font-mono-tabular text-[var(--text-secondary)]">Kiri</span>
-                </button>
-                <button id="ctrlDown" class="ts-ctrl-btn w-12 h-12 flex flex-col items-center justify-center" aria-label="Turun">
-                    <i class="ph-bold ph-arrow-down text-lg"></i>
-                    <span class="text-[9px] font-mono-tabular text-[var(--text-secondary)]">Turun</span>
-                </button>
-                <button id="ctrlRight" class="ts-ctrl-btn w-12 h-12 flex flex-col items-center justify-center" aria-label="Geser Kanan">
-                    <i class="ph-bold ph-arrow-right text-lg"></i>
-                    <span class="text-[9px] font-mono-tabular text-[var(--text-secondary)]">Kanan</span>
-                </button>
+        <div class="flex items-center justify-between gap-1.5 sm:gap-3 lg:hidden">
+            <!-- Left Thumb: Movement D-Pad + Hold Cluster -->
+            <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-1.5">
+                    <button id="ctrlHold" class="ts-ctrl-pill px-2.5 py-1.5 text-[10px] font-mono-tabular flex items-center gap-1" aria-label="Simpan Balok (Hold)">
+                        <i class="ph-bold ph-arrows-left-right text-xs text-[var(--accent)]"></i>
+                        <span>HOLD [C]</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button id="ctrlLeft" class="ts-ctrl-btn w-11 h-11 flex flex-col items-center justify-center" aria-label="Geser Kiri">
+                        <i class="ph-bold ph-caret-left text-xl"></i>
+                    </button>
+                    <button id="ctrlDown" class="ts-ctrl-btn w-11 h-11 flex flex-col items-center justify-center" aria-label="Turun Cepat">
+                        <i class="ph-bold ph-caret-down text-xl"></i>
+                    </button>
+                    <button id="ctrlRight" class="ts-ctrl-btn w-11 h-11 flex flex-col items-center justify-center" aria-label="Geser Kanan">
+                        <i class="ph-bold ph-caret-right text-xl"></i>
+                    </button>
+                </div>
             </div>
 
-            <!-- Center: Hold & Quick Actions -->
-            <div class="flex flex-col items-center justify-center gap-1">
-                <button id="ctrlHold" class="ts-ctrl-pill px-3 py-2 text-[11px] font-mono-tabular flex items-center gap-1" aria-label="Simpan Balok">
-                    <i class="ph-bold ph-arrows-left-right text-xs"></i>
-                    <span>HOLD</span>
-                </button>
-            </div>
+            <!-- Right Thumb: Action Cluster (CW, CCW, Drop) -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- Rotate CCW & Drop Sub-column -->
+                <div class="flex flex-col items-center gap-1.5">
+                    <button id="ctrlRotateCCW" class="ts-action-ccw w-11 h-11 flex flex-col items-center justify-center" aria-label="Putar Berlawanan Jarum Jam [Z]" title="Putar CCW">
+                        <i class="ph-bold ph-arrow-counter-clockwise text-base text-[var(--text-secondary)]"></i>
+                        <span class="text-[8px] font-mono-tabular font-bold text-[var(--text-secondary)]">CCW</span>
+                    </button>
+                    <button id="ctrlDrop" class="ts-ctrl-btn w-11 h-11 flex flex-col items-center justify-center" aria-label="Jatuh Instan (Hard Drop)">
+                        <i class="ph-bold ph-caret-double-down text-lg text-[var(--accent)]"></i>
+                        <span class="text-[8px] font-mono-tabular text-[var(--accent)] font-bold">DROP</span>
+                    </button>
+                </div>
 
-            <!-- Right Thumb: Action Cluster (Large Rotate & Hard Drop) -->
-            <div class="flex items-center gap-2">
-                <button id="ctrlDrop" class="ts-ctrl-btn w-12 h-12 flex flex-col items-center justify-center" aria-label="Jatuh Cepat">
-                    <i class="ph-bold ph-caret-double-down text-lg text-[var(--accent)]"></i>
-                    <span class="text-[9px] font-mono-tabular text-[var(--accent)] font-semibold">Drop</span>
-                </button>
-                <button id="ctrlRotate" class="ts-action-rotate w-14 h-14 flex flex-col items-center justify-center" aria-label="Putar Balok">
+                <!-- Primary Rotate CW (Large) -->
+                <button id="ctrlRotateCW" class="ts-action-rotate w-14 h-14 flex flex-col items-center justify-center" aria-label="Putar Searah Jarum Jam [Up/X]" title="Putar CW">
                     <i class="ph-bold ph-arrow-clockwise text-xl text-white"></i>
-                    <span class="text-[9px] font-mono-tabular text-white font-bold">PUTAR</span>
+                    <span class="text-[9px] font-mono-tabular text-white font-bold tracking-tight">PUTAR</span>
                 </button>
             </div>
         </div>
 
         <!-- Desktop Keyboard Help Strip (>= lg) -->
-        <div class="hidden lg:flex items-center justify-center gap-6 py-1 text-xs text-[var(--text-secondary)] font-mono-tabular border-t border-[var(--border-hairline)]">
+        <div class="hidden lg:flex items-center justify-center gap-5 py-1 text-xs text-[var(--text-secondary)] font-mono-tabular border-t border-[var(--border-hairline)]">
             <span><strong class="text-[var(--text-primary)]">A/D</strong> Geser</span>
-            <span><strong class="text-[var(--text-primary)]">W/X</strong> Putar</span>
+            <span><strong class="text-[var(--text-primary)]">W/X</strong> Putar CW</span>
+            <span><strong class="text-[var(--text-primary)]">Z</strong> Putar CCW</span>
             <span><strong class="text-[var(--text-primary)]">S</strong> Turun</span>
-            <span><strong class="text-[var(--text-primary)]">Spasi</strong> Jatuh Instan</span>
-            <span><strong class="text-[var(--text-primary)]">C / Shift</strong> Simpan</span>
+            <span><strong class="text-[var(--text-primary)]">Spasi</strong> Drop</span>
+            <span><strong class="text-[var(--text-primary)]">C</strong> Simpan</span>
             <span><strong class="text-[var(--text-primary)]">P</strong> Jeda</span>
+            <span><strong class="text-[var(--text-primary)]">M</strong> Musik</span>
         </div>
     </footer>
 
