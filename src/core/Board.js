@@ -154,16 +154,17 @@ export class Board {
     }
 
     /**
-     * Clear specified full rows and shift remaining rows down
+     * Clear specified full rows and shift remaining rows down.
+     * Uses atomic Set filtering to avoid index-shift mutation bugs during multi-row clears.
      * @param {number[]} rowIndices
      */
     clearRows(rowIndices) {
-        // Sort descending to safely splice from bottom up
-        const sorted = [...rowIndices].sort((a, b) => b - a);
-        sorted.forEach(ry => {
-            this.grid.splice(ry, 1);
+        if (!rowIndices || rowIndices.length === 0) return;
+        const rowsToClear = new Set(rowIndices);
+        this.grid = this.grid.filter((_, y) => !rowsToClear.has(y));
+        while (this.grid.length < this.rows) {
             this.grid.unshift(Array(this.cols).fill(null));
-        });
+        }
     }
 
     /**

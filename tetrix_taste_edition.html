@@ -1120,12 +1120,12 @@
                 }
             });
 
-            // 2. Clear full rows FIRST: completed line(s) explode and drop
-            const sorted = [...fullRows].sort((a, b) => b - a);
-            sorted.forEach(ry => {
-                gameState.grid.splice(ry, 1);
+            // 2. Clear full rows FIRST: completed line(s) explode and drop (Set filter avoids index shift bug)
+            const rowsToClear = new Set(fullRows);
+            gameState.grid = gameState.grid.filter((_, y) => !rowsToClear.has(y));
+            while (gameState.grid.length < ROWS) {
                 gameState.grid.unshift(Array(COLS).fill(null));
-            });
+            }
 
             // 3. Detonate thermal bombs AFTER line clear (upward & horizontal only, protecting lower foundation)
             let bombTriggered = false;
@@ -1138,6 +1138,24 @@
 
                 // 4. Cascade Gravity: collapse all floating blocks down to fill any gaps
                 applyCascadeGravity();
+
+                // If cascade gravity completed any new rows, clear them immediately
+                for (let cascadeRound = 0; cascadeRound < 5; cascadeRound++) {
+                    const cascadeRows = [];
+                    for (let cy = 0; cy < ROWS; cy++) {
+                        if (gameState.grid[cy].every(cell => cell !== null)) {
+                            cascadeRows.push(cy);
+                        }
+                    }
+                    if (cascadeRows.length === 0) break;
+                    const cRowsToClear = new Set(cascadeRows);
+                    gameState.grid = gameState.grid.filter((_, y) => !cRowsToClear.has(y));
+                    while (gameState.grid.length < ROWS) {
+                        gameState.grid.unshift(Array(COLS).fill(null));
+                    }
+                    gameState.lines += cascadeRows.length;
+                    applyCascadeGravity();
+                }
             }
 
             const count = fullRows.length;

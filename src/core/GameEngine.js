@@ -260,63 +260,75 @@ export class GameEngine {
      * Check for completed rows, bomb detonations, and scoring
      */
     handleCompletedLines() {
-        const { fullRows, bombCells } = this.board.findFullRows();
+        let totalLinesCleared = 0;
+        let round = 0;
 
-        if (fullRows.length === 0) {
-            this.state.combo = -1;
-            this.emitHudUpdate();
-            return;
-        }
+        while (round < 10) {
+            const { fullRows, bombCells } = this.board.findFullRows();
+            if (fullRows.length === 0) break;
 
-        // 1. Capture pristine row colors for particles before any modifications
-        const rowData = fullRows.map(ry => ({
-            rowIndex: ry,
-            cells: this.board.grid[ry].map((c, x) => ({ x, y: ry, color: c ? c.color : '#F4F4F0' }))
-        }));
+            round++;
+            const count = fullRows.length;
+            totalLinesCleared += count;
 
-        // 2. Clear full rows FIRST: completed line(s) explode and drop
-        this.board.clearRows(fullRows);
+            // 1. Capture pristine row colors for particles before any modifications
+            const rowData = fullRows.map(ry => ({
+                rowIndex: ry,
+                cells: this.board.grid[ry].map((c, x) => ({ x, y: ry, color: c ? c.color : '#F4F4F0' }))
+            }));
 
-        // 3. Detonate thermal bombs AFTER line clear (upward & horizontal only, protecting lower foundation)
-        let bombTriggered = false;
-        if (bombCells.length > 0) {
-            bombTriggered = true;
-            bombCells.forEach(({ x, y }) => {
-                // In post-clear board, target epicenter is at y
-                const targetY = Math.min(this.board.rows - 1, y);
-                const destroyed = this.board.detonateBombArea(x, targetY, false);
-                this.bus.emit(EVENTS.BOMB_DETONATE, { x, y: targetY, destroyed });
+            // 2. Clear full rows FIRST: completed line(s) explode and drop
+            this.board.clearRows(fullRows);
+
+            // 3. Detonate thermal bombs AFTER line clear (upward & horizontal only, protecting lower foundation)
+            let bombTriggered = false;
+            if (bombCells.length > 0) {
+                bombTriggered = true;
+                bombCells.forEach(({ x, y }) => {
+                    // In post-clear board, target epicenter is at y
+                    const targetY = Math.min(this.board.rows - 1, y);
+                    const destroyed = this.board.detonateBombArea(x, targetY, false);
+                    this.bus.emit(EVENTS.BOMB_DETONATE, { x, y: targetY, destroyed });
+                });
+
+                // 4. Cascade Gravity: collapse all floating blocks down to fill any gaps
+                this.board.applyCascadeGravity();
+            }
+
+            this.state.combo++;
+            this.state.lines += count;
+
+            const basePoints = SCORING.LINE_BASE_POINTS[count] || (count * 250);
+            const comboBonus = this.state.combo > 0 ? this.state.combo * SCORING.COMBO_BONUS_MULTIPLIER : 0;
+            const bombBonus = bombTriggered ? SCORING.BOMB_DETONATION_BONUS : 0;
+
+            const totalEarned = this.state.addScore(basePoints + comboBonus + bombBonus);
+
+            // Notify mode strategy
+            this.activeMode.onLineClear(count, bombTriggered, fullRows);
+
+            // Update level speed progression
+            this.state.updateLevelProgression();
+
+            // Emit events
+            this.bus.emit(EVENTS.LINE_CLEAR, {
+                count,
+                combo: this.state.combo,
+                totalEarned,
+                bombTriggered,
+                fullRows,
+                rowData
             });
 
-            // 4. Cascade Gravity: collapse all floating blocks down to fill any gaps
-            this.board.applyCascadeGravity();
+            // If no bombs detonated in this round, standard drop is strictly uniform; no cascading blocks can form new lines
+            if (!bombTriggered) {
+                break;
+            }
         }
 
-        const count = fullRows.length;
-        this.state.combo++;
-        this.state.lines += count;
-
-        const basePoints = SCORING.LINE_BASE_POINTS[count] || (count * 250);
-        const comboBonus = this.state.combo > 0 ? this.state.combo * SCORING.COMBO_BONUS_MULTIPLIER : 0;
-        const bombBonus = bombTriggered ? SCORING.BOMB_DETONATION_BONUS : 0;
-
-        const totalEarned = this.state.addScore(basePoints + comboBonus + bombBonus);
-
-        // Notify mode strategy
-        this.activeMode.onLineClear(count, bombTriggered, fullRows);
-
-        // Update level speed progression
-        this.state.updateLevelProgression();
-
-        // Emit events
-        this.bus.emit(EVENTS.LINE_CLEAR, {
-            count,
-            combo: this.state.combo,
-            totalEarned,
-            bombTriggered,
-            fullRows,
-            rowData
-        });
+        if (totalLinesCleared === 0) {
+            this.state.combo = -1;
+        }
 
         this.emitHudUpdate();
     }

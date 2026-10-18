@@ -189,4 +189,111 @@ describe('Board Matrix & Collision Model', () => {
         expect(board.grid[19][5]).not.toBeNull();
         expect(board.grid[19][5].color).toBe('#FFE600');
     });
+
+    it('clears multiple full rows (Double) at the bottom without leaving bottom row uncleared', () => {
+        // Row 17: Partial row (cols 0, 1, 2)
+        [0, 1, 2].forEach(x => {
+            board.grid[17][x] = { color: '#00F0FF', border: '#FFF', isBomb: false };
+        });
+
+        // Row 18: Full row
+        for (let x = 0; x < 10; x++) {
+            board.grid[18][x] = { color: '#FF4D00', border: '#FFF', isBomb: false };
+        }
+
+        // Row 19: Full bottom row
+        for (let x = 0; x < 10; x++) {
+            board.grid[19][x] = { color: '#FFE600', border: '#FFF', isBomb: false };
+        }
+
+        const { fullRows } = board.findFullRows();
+        expect(fullRows).toEqual([18, 19]);
+
+        board.clearRows(fullRows);
+
+        // Grid must maintain 20 rows
+        expect(board.grid.length).toBe(20);
+
+        // Row 19 must now be the partial row that dropped down from row 17 (cols 0, 1, 2 only)
+        expect(board.grid[19][0]).not.toBeNull();
+        expect(board.grid[19][0].color).toBe('#00F0FF');
+        expect(board.grid[19][1]).not.toBeNull();
+        expect(board.grid[19][2]).not.toBeNull();
+        for (let x = 3; x < 10; x++) {
+            expect(board.grid[19][x]).toBeNull();
+        }
+
+        // Row 18 and all above must be completely null
+        for (let y = 0; y < 19; y++) {
+            expect(board.grid[y].every(cell => cell === null)).toBe(true);
+        }
+    });
+
+    it('clears 4 rows (TetriX) at the bottom simultaneously', () => {
+        // Row 15: Single block at col 4
+        board.grid[15][4] = { color: '#FF00FF', border: '#FFF', isBomb: false };
+
+        // Rows 16, 17, 18, 19: All full
+        for (let y = 16; y <= 19; y++) {
+            for (let x = 0; x < 10; x++) {
+                board.grid[y][x] = { color: '#FFF', border: '#FFF', isBomb: false };
+            }
+        }
+
+        const { fullRows } = board.findFullRows();
+        expect(fullRows).toEqual([16, 17, 18, 19]);
+
+        board.clearRows(fullRows);
+        expect(board.grid.length).toBe(20);
+
+        // The block at row 15 (col 4) must now drop 4 lines down to row 19 (col 4)
+        expect(board.grid[19][4]).not.toBeNull();
+        expect(board.grid[19][4].color).toBe('#FF00FF');
+
+        // All other cells in row 19 must be null
+        for (let x = 0; x < 10; x++) {
+            if (x !== 4) expect(board.grid[19][x]).toBeNull();
+        }
+
+        // Rows 0..18 must all be empty
+        for (let y = 0; y < 19; y++) {
+            expect(board.grid[y].every(c => c === null)).toBe(true);
+        }
+    });
+
+    it('clears non-contiguous full rows (e.g. rows 17 and 19) preserving row 18 in between', () => {
+        // Row 17: Full
+        for (let x = 0; x < 10; x++) {
+            board.grid[17][x] = { color: '#AAA', border: '#FFF', isBomb: false };
+        }
+
+        // Row 18: Incomplete (only cols 0, 1)
+        board.grid[18][0] = { color: '#111', border: '#FFF', isBomb: false };
+        board.grid[18][1] = { color: '#111', border: '#FFF', isBomb: false };
+
+        // Row 19: Full bottom row
+        for (let x = 0; x < 10; x++) {
+            board.grid[19][x] = { color: '#BBB', border: '#FFF', isBomb: false };
+        }
+
+        const { fullRows } = board.findFullRows();
+        expect(fullRows).toEqual([17, 19]);
+
+        board.clearRows(fullRows);
+        expect(board.grid.length).toBe(20);
+
+        // Row 18 drops down 1 row (because row 19 below it was cleared) to row 19
+        expect(board.grid[19][0]).not.toBeNull();
+        expect(board.grid[19][0].color).toBe('#111');
+        expect(board.grid[19][1]).not.toBeNull();
+        expect(board.grid[19][1].color).toBe('#111');
+        for (let x = 2; x < 10; x++) {
+            expect(board.grid[19][x]).toBeNull();
+        }
+
+        // Rows 0..18 are all null
+        for (let y = 0; y < 19; y++) {
+            expect(board.grid[y].every(c => c === null)).toBe(true);
+        }
+    });
 });
