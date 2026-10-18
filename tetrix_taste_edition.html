@@ -1045,26 +1045,38 @@
                 return;
             }
 
-            let bombTriggered = false;
+            // 1. Capture colors and bomb locations before clearing lines
+            const bombCells = [];
             fullRows.forEach(ry => {
                 for (let x = 0; x < COLS; x++) {
                     const cell = gameState.grid[ry][x];
                     if (cell && cell.isBomb) {
-                        bombTriggered = true;
-                        detonateBombArea(x, ry);
+                        bombCells.push({ x, y: ry });
                     }
-                }
-            });
-
-            fullRows.forEach(ry => {
-                for (let x = 0; x < COLS; x++) {
-                    const cell = gameState.grid[ry][x];
                     const color = cell ? cell.color : '#F4F4F0';
                     spawnParticles((x + 0.5) * BLOCK_SIZE, (ry + 0.5) * BLOCK_SIZE, color, 6, 4);
                 }
+            });
+
+            // 2. Clear full rows FIRST: completed line(s) explode and drop
+            const sorted = [...fullRows].sort((a, b) => b - a);
+            sorted.forEach(ry => {
                 gameState.grid.splice(ry, 1);
                 gameState.grid.unshift(Array(COLS).fill(null));
             });
+
+            // 3. Detonate thermal bombs AFTER line clear (upward & horizontal only, protecting lower foundation)
+            let bombTriggered = false;
+            if (bombCells.length > 0) {
+                bombTriggered = true;
+                bombCells.forEach(({ x, y }) => {
+                    const targetY = Math.min(ROWS - 1, y);
+                    detonateBombArea(x, targetY, false);
+                });
+
+                // 4. Cascade Gravity: collapse all floating blocks down to fill any gaps
+                applyCascadeGravity();
+            }
 
             const count = fullRows.length;
             gameState.combo++;
@@ -1110,8 +1122,9 @@
             }
         }
 
-        function detonateBombArea(cx, cy) {
-            for (let dy = -1; dy <= 1; dy++) {
+        function detonateBombArea(cx, cy, allowDownward = false) {
+            const maxDy = allowDownward ? 1 : 0;
+            for (let dy = -1; dy <= maxDy; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
                     const ny = cy + dy;
                     const nx = cx + dx;
@@ -1121,6 +1134,24 @@
                     }
                 }
             }
+        }
+
+        function applyCascadeGravity() {
+            let movedCount = 0;
+            for (let x = 0; x < COLS; x++) {
+                let writeY = ROWS - 1;
+                for (let y = ROWS - 1; y >= 0; y--) {
+                    if (gameState.grid[y][x] !== null) {
+                        if (writeY !== y) {
+                            gameState.grid[writeY][x] = gameState.grid[y][x];
+                            gameState.grid[y][x] = null;
+                            movedCount++;
+                        }
+                        writeY--;
+                    }
+                }
+            }
+            return movedCount;
         }
 
         function activateOverdrive() {

@@ -268,22 +268,29 @@ export class GameEngine {
             return;
         }
 
-        let bombTriggered = false;
-        if (bombCells.length > 0) {
-            bombTriggered = true;
-            bombCells.forEach(({ x, y }) => {
-                const destroyed = this.board.detonateBombArea(x, y);
-                this.bus.emit(EVENTS.BOMB_DETONATE, { x, y, destroyed });
-            });
-        }
-
-        // Collect colors for particles
+        // 1. Capture pristine row colors for particles before any modifications
         const rowData = fullRows.map(ry => ({
             rowIndex: ry,
             cells: this.board.grid[ry].map((c, x) => ({ x, y: ry, color: c ? c.color : '#F4F4F0' }))
         }));
 
+        // 2. Clear full rows FIRST: completed line(s) explode and drop
         this.board.clearRows(fullRows);
+
+        // 3. Detonate thermal bombs AFTER line clear (upward & horizontal only, protecting lower foundation)
+        let bombTriggered = false;
+        if (bombCells.length > 0) {
+            bombTriggered = true;
+            bombCells.forEach(({ x, y }) => {
+                // In post-clear board, target epicenter is at y
+                const targetY = Math.min(this.board.rows - 1, y);
+                const destroyed = this.board.detonateBombArea(x, targetY, false);
+                this.bus.emit(EVENTS.BOMB_DETONATE, { x, y: targetY, destroyed });
+            });
+
+            // 4. Cascade Gravity: collapse all floating blocks down to fill any gaps
+            this.board.applyCascadeGravity();
+        }
 
         const count = fullRows.length;
         this.state.combo++;

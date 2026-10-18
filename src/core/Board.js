@@ -104,14 +104,16 @@ export class Board {
     }
 
     /**
-     * Detonate 3x3 area around bomb coordinate
-     * @param {number} cx
-     * @param {number} cy
+     * Detonate bomb area around coordinate
+     * @param {number} cx - Center X
+     * @param {number} cy - Center Y
+     * @param {boolean} [allowDownward=false] - If false, only blasts upward and horizontally (dy <= 0) to protect lower foundation
      * @returns {Array<{x: number, y: number, color: string}>} Destroyed cells
      */
-    detonateBombArea(cx, cy) {
+    detonateBombArea(cx, cy, allowDownward = false) {
         const destroyed = [];
-        for (let dy = -1; dy <= 1; dy++) {
+        const maxDy = allowDownward ? 1 : 0;
+        for (let dy = -1; dy <= maxDy; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
                 const ny = cy + dy;
                 const nx = cx + dx;
@@ -126,6 +128,29 @@ export class Board {
             }
         }
         return destroyed;
+    }
+
+    /**
+     * Apply vertical cascade gravity across all columns.
+     * Drops all floating blocks down to fill any holes or cavities below them.
+     * @returns {number} Count of blocks that shifted down
+     */
+    applyCascadeGravity() {
+        let movedCount = 0;
+        for (let x = 0; x < this.cols; x++) {
+            let writeY = this.rows - 1;
+            for (let y = this.rows - 1; y >= 0; y--) {
+                if (this.grid[y][x] !== null) {
+                    if (writeY !== y) {
+                        this.grid[writeY][x] = this.grid[y][x];
+                        this.grid[y][x] = null;
+                        movedCount++;
+                    }
+                    writeY--;
+                }
+            }
+        }
+        return movedCount;
     }
 
     /**
