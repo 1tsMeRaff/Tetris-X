@@ -45,17 +45,34 @@ function initApp() {
     }
 
     const btnMusic = document.getElementById('btnMusic');
+    const updateMusicIcon = (active) => {
+        if (!btnMusic) return;
+        const icon = btnMusic.querySelector('i');
+        if (icon) {
+            icon.className = active
+                ? 'ph-fill ph-waveform text-base text-[var(--accent)]'
+                : 'ph ph-waveform text-base text-[var(--text-secondary)]';
+        }
+        btnMusic.setAttribute('aria-pressed', String(active));
+    };
+
     if (btnMusic) {
+        // Set initial state from audio system (localStorage)
+        updateMusicIcon(audio.musicEnabled);
+
         btnMusic.addEventListener('click', () => {
             const active = audio.toggleMusic();
-            const icon = btnMusic.querySelector('i');
-            if (icon) {
-                icon.className = active
-                    ? 'ph-fill ph-waveform text-base text-[var(--accent)]'
-                    : 'ph ph-waveform text-base text-[var(--text-secondary)]';
-            }
+            updateMusicIcon(active);
         });
     }
+
+    // Global KeyM shortcut to toggle music
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyM' && !e.repeat) {
+            const active = audio.toggleMusic();
+            updateMusicIcon(active);
+        }
+    });
 
     // Overdrive Trigger Buttons
     const btnOverdriveDesktop = document.getElementById('btnOverdriveDesktop');

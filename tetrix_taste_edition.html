@@ -631,9 +631,12 @@
 
             toggleMusic() {
                 this.musicEnabled = !this.musicEnabled;
+                if (typeof localStorage !== 'undefined') {
+                    try { localStorage.setItem('tetrix_music_enabled', String(this.musicEnabled)); } catch (e) {}
+                }
                 if (this.musicEnabled) {
                     this.init();
-                    this.startBgm();
+                    if (gameState.running && !gameState.paused) this.startBgm();
                 } else {
                     this.stopBgm();
                 }
@@ -641,14 +644,73 @@
             }
 
             startBgm() {
+                if (!this.musicEnabled || !this.ctx) return;
                 this.stopBgm();
-                const sequence = [110, 110, 146.83, 130.81, 164.81, 146.83, 130.81, 98];
+
+                this.step = 0;
+                this.nextStepTime = this.ctx.currentTime + 0.05;
+                const stepDuration = 0.1923; // 78 BPM
+
                 this.bgmInterval = setInterval(() => {
-                    if (!this.musicEnabled || gameState.paused || !gameState.running) return;
-                    const freq = sequence[this.step % sequence.length];
-                    this.playTone(freq, 'triangle', 0.14, 0.045, freq * 0.99);
-                    this.step++;
-                }, 220);
+                    if (!this.musicEnabled || gameState.paused || !gameState.running || !this.ctx) return;
+
+                    while (this.nextStepTime < this.ctx.currentTime + 0.12) {
+                        this.scheduleStep(this.step, this.nextStepTime, stepDuration);
+                        this.nextStepTime += stepDuration;
+                        this.step = (this.step + 1) % 64;
+                    }
+                }, 25);
+            }
+
+            scheduleStep(step, time, stepDuration) {
+                if (!this.ctx) return;
+
+                // Melody notes: [step, freq, dur]
+                const melody = [
+                    [0, 659.25, 4], [4, 493.88, 2], [6, 523.25, 2], [8, 587.33, 4],
+                    [12, 523.25, 2], [14, 493.88, 2], [16, 440, 4], [20, 440, 2],
+                    [22, 523.25, 2], [24, 659.25, 4], [28, 587.33, 2], [30, 523.25, 2],
+                    [32, 493.88, 5], [37, 523.25, 2], [40, 587.33, 4], [44, 659.25, 4],
+                    [48, 523.25, 4], [52, 440, 4], [56, 440, 6]
+                ].find(m => m[0] === step);
+
+                if (melody) {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(melody[1], time);
+                    const dur = melody[2] * stepDuration;
+                    gain.gain.setValueAtTime(0.0001, time);
+                    gain.gain.linearRampToValueAtTime(0.065, time + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur + 0.1);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(time);
+                    osc.stop(time + dur + 0.12);
+                }
+
+                // Bass notes: [step, freq, dur]
+                const bass = [
+                    [0, 110, 4], [4, 82.4, 3], [8, 103.8, 4], [12, 82.4, 3],
+                    [16, 110, 4], [20, 82.4, 3], [24, 110, 4], [28, 73.4, 3],
+                    [32, 82.4, 4], [36, 103.8, 3], [40, 73.4, 4], [44, 82.4, 3],
+                    [48, 87.3, 4], [52, 65.4, 3], [56, 110, 6]
+                ].find(b => b[0] === step);
+
+                if (bass) {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(bass[1], time);
+                    const dur = bass[2] * stepDuration;
+                    gain.gain.setValueAtTime(0.0001, time);
+                    gain.gain.linearRampToValueAtTime(0.05, time + 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur + 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(time);
+                    osc.stop(time + dur + 0.1);
+                }
             }
 
             stopBgm() {
@@ -1600,49 +1662,132 @@
             }, 1500);
         });
 
+        // DAS / ARR Keyboard Engine for Standalone
+        const heldKeys = new Set();
+        let currentHorizDir = 0;
+        let dasTimer = null;
+        let arrTimer = null;
+        let softDropTimer = null;
+        let hardDropLocked = false;
+
+        function clearHorizTimers() {
+            if (dasTimer) clearTimeout(dasTimer);
+            if (arrTimer) clearInterval(arrTimer);
+            dasTimer = null;
+            arrTimer = null;
+        }
+
+        function handleHorizKeyDown(dir) {
+            if (currentHorizDir === dir) return;
+            currentHorizDir = dir;
+            clearHorizTimers();
+            movePiece(dir);
+
+            dasTimer = setTimeout(() => {
+                arrTimer = setInterval(() => {
+                    if (gameState.running && !gameState.paused) movePiece(currentHorizDir);
+                }, 28); // 28ms ARR
+            }, 130); // 130ms DAS
+        }
+
+        function handleHorizKeyUp(dir) {
+            if (currentHorizDir !== dir) return;
+            clearHorizTimers();
+            const oppositeHeld = (dir === -1)
+                ? (heldKeys.has('ArrowRight') || heldKeys.has('KeyD'))
+                : (heldKeys.has('ArrowLeft') || heldKeys.has('KeyA'));
+            if (oppositeHeld) {
+                handleHorizKeyDown(-dir);
+            } else {
+                currentHorizDir = 0;
+            }
+        }
+
         document.addEventListener('keydown', (e) => {
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
                 e.preventDefault();
             }
 
             if (e.code === 'KeyP' || e.code === 'Escape') {
-                togglePause();
+                if (!e.repeat) togglePause();
                 return;
             }
 
+            heldKeys.add(e.code);
             if (!gameState.running || gameState.paused) return;
 
             switch (e.code) {
                 case 'ArrowLeft':
                 case 'KeyA':
-                    movePiece(-1);
+                    handleHorizKeyDown(-1);
                     break;
                 case 'ArrowRight':
                 case 'KeyD':
-                    movePiece(1);
+                    handleHorizKeyDown(1);
                     break;
                 case 'ArrowDown':
                 case 'KeyS':
-                    softDrop();
+                    if (!softDropTimer) {
+                        softDrop();
+                        softDropTimer = setInterval(() => {
+                            if (gameState.running && !gameState.paused) softDrop();
+                        }, 32);
+                    }
                     break;
                 case 'ArrowUp':
                 case 'KeyW':
                 case 'KeyX':
-                    rotateCurrentPiece(1);
+                    if (!e.repeat) rotateCurrentPiece(1);
                     break;
                 case 'KeyZ':
-                    rotateCurrentPiece(-1);
+                    if (!e.repeat) rotateCurrentPiece(-1);
                     break;
                 case 'Space':
-                    hardDrop();
+                    if (!hardDropLocked) {
+                        hardDropLocked = true;
+                        hardDrop();
+                    }
                     break;
                 case 'KeyC':
                 case 'ShiftLeft':
                 case 'ShiftRight':
-                    holdCurrentPiece();
+                    if (!e.repeat) holdCurrentPiece();
                     break;
                 case 'KeyE':
-                    activateOverdrive();
+                    if (!e.repeat) activateOverdrive();
+                    break;
+                case 'KeyM':
+                    if (!e.repeat) {
+                        const active = sound.toggleMusic();
+                        const icon = document.getElementById('btnMusic').querySelector('i');
+                        if (icon) {
+                            icon.className = active ? 'ph-fill ph-waveform text-base text-[var(--accent)]' : 'ph ph-waveform text-base text-[var(--text-secondary)]';
+                        }
+                    }
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            heldKeys.delete(e.code);
+            switch (e.code) {
+                case 'ArrowLeft':
+                case 'KeyA':
+                    if (!heldKeys.has('ArrowLeft') && !heldKeys.has('KeyA')) handleHorizKeyUp(-1);
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    if (!heldKeys.has('ArrowRight') && !heldKeys.has('KeyD')) handleHorizKeyUp(1);
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    if (!heldKeys.has('ArrowDown') && !heldKeys.has('KeyS') && softDropTimer) {
+                        clearInterval(softDropTimer);
+                        softDropTimer = null;
+                    }
+                    break;
+                case 'Space':
+                    hardDropLocked = false;
                     break;
             }
         });

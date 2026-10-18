@@ -162,6 +162,23 @@ input[type="range"].ts-slider::-webkit-slider-thumb {
         box-shadow: 0 2px 8px rgba(255, 77, 0, 0.2);
     }
 
+    .ts-action-ccw {
+        background-color: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1.5px solid var(--border-strong);
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: transform 0.08s ease, background-color 0.08s ease, border-color 0.08s ease;
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .ts-action-ccw:active {
+        background-color: var(--accent-tint);
+        border-color: var(--accent);
+        transform: scale(0.90);
+    }
+
     .ts-ctrl-pill {
         background-color: var(--bg-surface);
         color: var(--text-primary);
